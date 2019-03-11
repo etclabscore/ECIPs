@@ -14,6 +14,10 @@ Add support for a subset of protocol-impacting changes introduced in the Ethereu
 - Byzantium EVM opcodes and precompiled contracts, namely opcodes `REVERT` (EIP 206/140), `RETURNDATASIZE` (EIP 211), `RETURNDATACOPY` (EIP 211), and `STATICCALL` (EIP 214/116); and precompiled contracts for modular exponentiation, elliptic curve addition, scalar multiplication, and pairing (EIPs 198, 212/197, 213/196)
 - Replacing the intermediate state root field in transaction receipts with the contract return status (EIP 658).
 
+In addition to introducing the above Byzantium-derived changes, it is also proposed to simultaneously introduce support for EVM versioning, as specified in:
+
+- [EIP1707: Use Version Byte Prefix for Contract Account Versioning](https://github.com/ethereum/EIPs/pull/1707)
+
 This document proposes block `X,XXX,XXX` as the upcoming block height at which to implement these changes in the network, placing the expected date of protocol hardfork date on _XXXX-XX-XX_.
 
 For more information on the opcodes and their respective EIPs and implementations, please see the __History__ section of this document.
@@ -32,14 +36,9 @@ As per associated EIPs's specifications and implementations, with feature-readin
 
 __Interoperability__: establishing and maintaining interoperable behavior between Ethereum clients is important for developers and end-user adoption, yielding benefits for all participating chains (eg. ETH and ETC).
 
-__On Immutability__: Introducing new opcodes in the VM has the potential to change behavior of existing contracts; in the case where previously an arbitrary invalid bytecode series (yielding _invalid opcode_) would now be assigned a meaning, and thus could generate or return a value other than _invalid_. In essence, this means "possibly making music where there was only noise before." There is a concern that this behavior change contradicts an essential promise of Immutability, since an existing failing smart contract is liable to become a succeeding (not failing) contract, albeit in a hypothetical case of extreme coincidence and gross misuse of an opcode. In counterargument to this concern are two critical points:
+__On Immutability__: Introducing new opcodes in the VM has the potential to change behavior of existing contracts; in the case where previously an arbitrary invalid bytecode series (yielding _invalid opcode_) would now be assigned a meaning, and thus could generate or return a value other than _invalid_. 
 
-1. account states remain unchanged
-2. the "Homestead" hardfork established a precedent for this type of change, having introduced the `DELEGATECALL` opcode at block 1,150,000.
-
-With these arguments in place, along with precedence and expectation for other continuing and varied consensus-impacting protocol upgrades (eg soft- and hard-forks), it follows that the definition of Immutability is not extended to guarantee perfect consistency for future _behavior_ of historical account states, but only to only to guarantee the immutability of the account states themselves.
-
-Adding opcodes and precompiled contracts to the EVM increases its functionality (only in an extremely rare case of gross misuse would be seen to _change_ it's functionality), and should be considered a feature upgrade rather than a modification. 
+Adding opcodes and precompiled contracts to the EVM increases its functionality at the potential cost of sacrificed ideals of "Immutability." The above referenced EIP1707 specifies an introduction of contract account versioning that would enable a guarantee that historical versions of an EVM would be always be available and configured per contracts, enabling eternally reproducable contract behavior.
 
 ### Implementation
 
@@ -78,3 +77,5 @@ These changes are catalogued via the EIP process in the following:
 - EIP-212: Precompiled contract for elliptic curve pairing - https://github.com/ethereum/EIPs/pull/212/files
 
 - EIP-213: Precompiled contracts for elliptic curve addition and scalar multiplication - https://github.com/ethereum/EIPs/pull/213/files
+
+- EIP-1707: Use Version Byte Prefix for Contract Account Versioning - https://github.com/ethereum/EIPs/pull/1707
