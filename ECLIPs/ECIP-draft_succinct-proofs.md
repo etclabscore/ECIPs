@@ -8,42 +8,76 @@ type: Standards Track
 category (*only required for Standard Track): Core
 created: 2019-03-12
 replaces (*optional): 210, 1094, 641
+
 ---
 
-<!--You can leave these HTML comments in your merged EIP and delete the visible duplicate text guides, they will not appear and may be helpful to refer to if you edit it again. This is the suggested template for new EIPs. Note that an EIP number will be assigned by an editor. When opening a pull request to submit your EIP, please use an abbreviated title in the filename, `eip-draft_title_abbrev.md`. The title should be 44 characters or less.-->
-
 ## Simple Summary
-<!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the EIP.-->
+
 The addition of a Merkle-Mountain-Range (MMR) root to blockheaders
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
+
+A block _chain_ could be interpreted as a linked-list using hashpointers from each block to its previous block. A Merkle-Mountain-Range is a type of tree that, will allow every block to point back to _all_ its previous blocks. This can be accomplished using only a single hashPointer in each block - the current MMR _root_. Adding this will allow proving the cummulative work of an entire chain in Olog(n) time, instead of the current O(n) time. In the case of ethereum, with small block-times, and over 7 million blocks and counting, this will open a ton of doors in the area light-clients, and data verification.
+
 
 
 ## Motivation
 <!--The motivation is critical for EIPs that want to change the Ethereum protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the EIP solves. EIP submissions without sufficient motivation may be rejected outright.-->
 The recent FlyClient [paper](https://eprint.iacr.org/2019/226.pdf) and [presentation](https://www.youtube.com/watch?v=BPNs9EVxWrA) at Scaling Bitcoin Represented a major breakthrough the ability to succinctly, and non-interactivly prove the cummulative work of a blockchain. 
 
-Given its particularly large number of blocks (~7M+) Ethereum requires 4GB of data.
-With this EIP, the same amount work going forward can already be proven in < 500kb with even a few more optimizations likely possible. This will hit a sweet spot, where for instance, mobile wallets, can request the latest cummulative work every time they are opened. Combine this with EIP-1186 (already merged), and users can finally verify data in a practical way (without a full-node).
+The current data structures in Ethereum (merkle-patricia-trees) were made with the sole purpose of allowing succinct verification of all the data. I have personally been working for some time on the missing tools to extract, send, and validate these proofs. This work is mostly done, but there is a problem: 
 
-This may also open doors for side-chains, state-channels, plasma, trustless bridges, atomic swaps, and the overall light-client-protocol.
+Without a succinct way to verify work, there is nothing to verify these merkle proofs _against_.
 
-This also solves EIPs 210, 1094, 641, (access to historic blockhashes through the EVM). A simple merkle proof can be input to prove the historic hash, with a size of ~864 bytes.
+A merkle proof can only verify against a hash that I _already_ trust. The chain goes something like this for some contract or account data `x`:
+
+- `x` is proven to have existed in a particular `storageRoot` 
+- `storageRoot` is proven to have existed in a particular `account`
+- `acount` is proven to have existed in a particular `stateTree`
+- `stateTree` is proven to have existed in a particular `block`
+
+The problem is that it ends there. And we still have nothing, if the person (or proplet) validating cannot validate the block. The cost to produce such proofs is free; Blocks must be validate, but they cant use the same strategy they must validate against a chain, currently the only way to do this requires 4gb. Thats too much. We need something that can work within a few seconds. 
+
+FlyClient is that something, and adding an `MMRroot` to each blockheader is the protocol change that will allow FlyClient to work.
+
+With this EIP, PoW can be proven in < 3 megabytes. This will hit a sweet spot, where for instance, mobile wallets, can request the latest cummulative work every time they are opened (no need to even "sync"). Users can finally verify data in a practical way (without a full-node). The proofs are even small enough for IoT.
+
+This may also open doors for side-chains, state-channels, plasma, trustless bridges, atomic swaps, and the peer-to-peer light-client-protocols being worked on by the Geth and Parity teams.
+
+This also solves EIPs 210, 1094, 641 - it gives the EVM a way to access to historic blockhashes. A transaction sender simply provides a merkle proof relating the historic hash against any of the last 256 blocks, and the block against its blockhash (available as op `0x40`), with a size of ~864 bytes.
 
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Ethereum platforms (go-ethereum, parity, cpp-ethereum, ethereumj, ethereumjs, and [others](https://github.com/ethereum/wiki/wiki/Clients)).-->
-If `block.number >= ISTANBUL_FORK_NUM` then when constructing the block, set a 16th value `blockHashesRoot` to the header.
+There is a consensus-breaking rule change proposed here, and then a bit of software around the change will be needed in order to take advantage of the new features. I think it would be best to keep _this_ EIP as just detailing the rule-change, I will summeraize the other tools and link them
+
+### Consensus Rule Change
+
+If `block.number >= ISTANBUL_FORK_NUM` then when constructing the block, set a 16th value `blockHashesRoot` in the header to the `MMRRoot` from the previous block.
 
 This Root is defined by the combining all previous hashes into a [Merkle Mountain Range](https://github.com/juinc/tilap/issues/244) (Peter Todd) using it's block number as leaf index.
 
-Implimentaion of this tree is up to the clients but its fairly simple and requires only an additional ~500mb (on disk) to a full node.
+Implimentaion of this tree is up to the clients but its fairly simple and requires only an additional ~500mb (on disk) to a full/archive node.
 
-I PoC JS implimentaion (with the real 7 million tree values) shows the following statistics:
+It can be implimented as an array, so I've persisted it with a random-access file. Only a log(n) number of read/writes are done for any operation. 
+
+<!--T
+A PoC JS implimentaion with the full, real dataset (7 million tree values) shows the following statistics:
 - Calculating a `blockHashesRoot`: <X> seconds
 - Creating a succinct Proof `blockHashesRoot`: <Y> seconds
 - Size of a Proof <Z> mb
+-->
+
+### Tooling
+
+The most obvious need is for a non-full-node to be able to request this Proof from a full-node. This should be done by adding an RPC method. The method will take no arguments and it should return an object with: 
+
+- The lastest blockHeader
+- A list of the randomly selected ~500 blockheaders for the proof
+  - a standard deterministic way to pick the 500 hashes (using blockhash as seed) over the probability denisty function. I propose that we do something like [this](https://en.wikipedia.org/wiki/Slice_sampling)
+  - The 64 byte dataset (each) for verifying an ethHash (~2.4 MB)
+- A list of proofNodes from the MMR (+"bag proof" nodes)
 
 
 
@@ -61,8 +95,15 @@ Test cases for an implementation are mandatory for EIPs that are affecting conse
 
 ## Implementation
 <!--The implementations must be completed before any EIP is given status "Final", but it need not be completed before the EIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
-The implementations must be completed before any EIP is given status "Final", but it need not be completed before the EIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.
+
 
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
+
+<!--
+#### MY notes
+see if there is a requirment for the cummulative work to be included in each blockheader. Hopefully we only tneed the mmr root. In either case we still will probably need to return the cummulative work (or probably the cummulative work _of each blockheader_) with the rpc request.
+
+
+-->
