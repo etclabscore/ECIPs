@@ -91,7 +91,7 @@ The MMR structure uses a proccess of "bagging the peaks" in order to create a si
 
 The structure can be implimented as an array. Only a log(n) number of read/writes are done for any operation. A `put` operation needs to be done durring each block validation by the client. About 600 `get`s need to be performed when one of these proofs is requested (however the client can cash the latest proof). There is exactly 1 valid FlyProof for the current tip (latest mined block).
 
-The FlyCLient paper can be followed almost exactly. Find it [here](https://github.com/etclabscore/ECIPs/pull/11)for specs.
+The FlyCLient paper can be followed almost exactly. Find it [here](https://eprint.iacr.org/2019/226.pdf)for specs.
  
 
 Missing from the paper is a specific way to attain the samples from the blockhash (used as random seed). For this proccess, I propose we use [slice-sampling](https://en.wikipedia.org/wiki/Slice_sampling). This should be a very efficient algorythm as long as our probability density function is _inversable_. We may require a hash during each iteration (~600). This proces is only required for building and verifying proofs, it is not required for instance, of miners.
