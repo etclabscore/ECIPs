@@ -1,5 +1,5 @@
 ---
-eip: <to be assigned>
+ecip: 1055
 title: Succinct PoW Using Merkle Mountain Ranges
 author: Zac Mitton @zmitton
 discussions-to: <https://github.com/ethereum/EIPs/pulls> (Pull Number TBD)
