@@ -30,18 +30,44 @@ The current data structures in Ethereum (merkle-patricia-trees) were made with t
 
 Without a succinct way to verify work, there is nothing to verify these merkle proofs _against_.
 
-A merkle proof can only verify against a hash that I _already_ trust. The chain goes something like this for some contract or account data `x`:
+A merkle proof can only verify against a hash that I _already_ trust. The validation chain goes something like this for some contract data `x`:
 
-- `x` is proven to have existed in a particular `storageRoot` 
-- `storageRoot` is proven to have existed in a particular `account`
-- `acount` is proven to have existed in a particular `stateTree`
-- `stateTree` is proven to have existed in a particular `block`
+- `x` is proven to have existed in a particular `storageRoot_x`
+- `storageRoot_x` is proven to have existed in a particular `account_x`
+- `acount` is proven to have existed in a particular `stateTree_x`
+- `stateTree_x` is proven to have existed in a particular `block_x`
 
-The problem is that it ends there. And we still have nothing, if the person (or proplet) validating cannot validate the block. The cost to produce such proofs is free; Blocks must be validate, but they cant use the same strategy they must validate against a chain, currently the only way to do this requires 4gb. Thats too much. We need something that can work within a few seconds. 
+And merkle proofs end there: `block_x` unfortunately cannot be trusted.
+
+There are 2 main strategies for verifying a `block`:
+- Validate every transaction sinse genesis 
+  - This  takes a week on desktop and 
+  - Requires the user to have the full dataset anyway, removing the need for merkle proofs in the first place.
+  - Is infeasible on mobile.
+- Validating the work (of the entire chain)
+  - Relies on majority honest miner assumption
+  - _currently_ requires all block headers
+  - _currently_ requires validating every blockHeader's PoW
+
+<!-- at all unless you check its proof of work. Doing that would yeild a cost parameter:
+
+- `block_x` is proven to have cost about `5 Ether` to produce.
+
+nowing that something cost 5 Ether is not sufficient for most applications. By checking a suffix (blocks after this point in the chain) we can prove that the data cost at least `5n Ether` to produce, where n is the number of blocks checked.
+
+With the simple assumption that the honest chain has 2/3 of the total mining power
+
+The next thing we can do is to request the header before that and validate its PoW as well -->
+
+
+
+The problem is that it ends there. And we still have nothing, if the person (or machine) validating cannot validate the block. The cost to produce such proofs is free; To validate blocks we cant use the same strategy. Blocks validate against a chain, which in turn validates through its proof of work. Currently the only way to do this requires 4gb of chain data. Thats way too much. We need something that can work within a few seconds. 
 
 FlyClient is that something, and adding an `MMRroot` to each blockheader is the protocol change that will allow FlyClient to work.
 
-With this EIP, PoW can be proven in < 3 megabytes. This will hit a sweet spot, where for instance, mobile wallets, can request the latest cummulative work every time they are opened (no need to even "sync"). Users can finally verify data in a practical way (without a full-node). The proofs are even small enough for IoT.
+On a high level, it allows the verifier to sample a subset of blocks in a tree, rather than a full amount thought a linked list, improving the time-complexit from O(n) to O(log(n)). The sample subset can be made large enough such it is cryptographically infeasible to ever produce a false proof.
+
+With this EIP, PoW can be proven in < 3 megabytes. This will hit a sweet spot, where for instance, mobile wallets, can request the latest cummulative work every time they are opened (no need to even "sync"). Users can finally verify data in a practical way (without a full-node). The proofs are even small enough for IoT devices.
 
 This may also open doors for side-chains, state-channels, plasma, trustless bridges, atomic swaps, and the peer-to-peer light-client-protocols being worked on by the Geth and Parity teams.
 
@@ -50,6 +76,7 @@ This also solves EIPs 210, 1094, 641 - it gives the EVM a way to access to histo
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Ethereum platforms (go-ethereum, parity, cpp-ethereum, ethereumj, ethereumjs, and [others](https://github.com/ethereum/wiki/wiki/Clients)).-->
+
 There is a consensus-breaking rule change proposed here, and then a bit of software around the change will be needed in order to take advantage of the new features. I think it would be best to keep _this_ EIP as just detailing the rule-change, I will summeraize the other tools and link them
 
 ### Consensus Rule Change
@@ -60,7 +87,15 @@ This Root is defined by the combining all previous hashes into a [Merkle Mountai
 
 Implimentaion of this tree is up to the clients but its fairly simple and requires only an additional ~500mb (on disk) to a full/archive node.
 
-It can be implimented as an array, so I've persisted it with a random-access file. Only a log(n) number of read/writes are done for any operation. 
+The MMR structure uses a proccess of "bagging the peaks" in order to create a single _root_ hash. However, this may be sub-optimal for our use case. I would like to ammend this to instead define each root as _the hash of the concatonation of the mountain peaks_. This will make building and verifying proofs much simpler without significantly changing the size of the proofs.
+
+The structure can be implimented as an array. Only a log(n) number of read/writes are done for any operation. A `put` operation needs to be done durring each block validation by the client. About 600 `get`s need to be performed when one of these proofs is requested (however the client can cash the latest proof). There is exactly 1 valid FlyProof for the current tip (latest mined block).
+
+The FlyCLient paper can be followed almost exactly. Find it [here](https://github.com/etclabscore/ECIPs/pull/11)for specs.
+ 
+
+Missing from the paper is a specific way to attain the samples from the blockhash (used as random seed). For this proccess, I propose we use [slice-sampling](https://en.wikipedia.org/wiki/Slice_sampling). This should be a very efficient algorythm as long as our probability density function is _inversable_. We may require a hash during each iteration (~600). This proces is only required for building and verifying proofs, it is not required for instance, of miners.
+
 
 <!--T
 A PoC JS implimentaion with the full, real dataset (7 million tree values) shows the following statistics:
@@ -69,15 +104,6 @@ A PoC JS implimentaion with the full, real dataset (7 million tree values) shows
 - Size of a Proof <Z> mb
 -->
 
-### Tooling
-
-The most obvious need is for a non-full-node to be able to request this Proof from a full-node. This should be done by adding an RPC method. The method will take no arguments and it should return an object with: 
-
-- The lastest blockHeader
-- A list of the randomly selected ~500 blockheaders for the proof
-  - a standard deterministic way to pick the 500 hashes (using blockhash as seed) over the probability denisty function. I propose that we do something like [this](https://en.wikipedia.org/wiki/Slice_sampling)
-  - The 64 byte dataset (each) for verifying an ethHash (~2.4 MB)
-- A list of proofNodes from the MMR (+"bag proof" nodes)
 
 
 
@@ -87,14 +113,21 @@ The most obvious need is for a non-full-node to be able to request this Proof fr
 
 ## Backwards Compatibility
 <!--All EIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The EIP must explain how the author proposes to deal with these incompatibilities. EIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
-All EIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The EIP must explain how the author proposes to deal with these incompatibilities. EIP submissions without a sufficient backwards compatibility treatise may be rejected outright.
+
 
 ## Test Cases
 <!--Test cases for an implementation are mandatory for EIPs that are affecting consensus changes. Other EIPs can choose to include links to test cases if applicable.-->
-Test cases for an implementation are mandatory for EIPs that are affecting consensus changes. Other EIPs can choose to include links to test cases if applicable.
 
 ## Implementation
 <!--The implementations must be completed before any EIP is given status "Final", but it need not be completed before the EIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
+
+The most obvious need is for a non-full-node to be able to request this Proof from a full-node. This should be done by adding an RPC method. The method will take no arguments and it should return an object with: 
+
+- The lastest blockHeader
+- A list of the randomly selected ~600 blockheaders for the proof
+  - we need to create the standard deterministic way to pick the the blocks (using blockhash as seed) over the probability denisty function. I propose that we do something like [this](https://en.wikipedia.org/wiki/Slice_sampling)
+  - The 64 byte dataset (each) for verifying an ethHash (~2.4 MB)
+- A list of proofNodes from the MMR (+"bag proof" nodes)
 
 
 ## Copyright
