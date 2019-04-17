@@ -27,7 +27,7 @@ When you believe your ECIP is mature and ready to progress past the draft phase,
 * **Final (non-Core)** - An ECIP that has been in Last Call for at least 2 weeks, any technical changes that were requested have been addressed by the author, and Core Devs decided to encode it into their clients. 
 * **Final (Core)** - An ECIP that the Core Devs have decided to implement and release in a future hard fork or has already been released in a hard fork. 
 * **Deferred** - An ECIP that is not being considered for immediate adoption. May be reconsidered in the future for a subsequent hard fork.
-* **Replaced/Obsolete** - When a Final ECIP is no longer relevant, its status may be changed to Replaced or Obsolete (which is equivalent to Replaced).
+* **Replaced** - When a Final ECIP is no longer relevant, its status may be changed to Replaced or Obsolete.
 * **Rejected** - Reasons for rejecting ECIPs include duplication of effort, disregard for formatting rules, being too unfocused or too broad, being technically unsound, not providing proper motivation or addressing backwards compatibility, or not in keeping with the Ethereum Classic philosophy.
 * **Withdrawn** - ECIP authors may decide on their own to change the status between Draft, Deferred, or Withdrawn. The ECIP editor may also change the status to Deferred when no progress is being made on the ECIP.
 
