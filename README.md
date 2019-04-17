@@ -29,7 +29,7 @@ When you believe your ECIP is mature and ready to progress past the draft phase,
 * **Deferred** - An ECIP that is not being considered for immediate adoption. May be reconsidered in the future for a subsequent hard fork.
 * **Replaced** - When a Final ECIP is no longer relevant, its status may be changed to Replaced or Obsolete.
 * **Rejected** - Reasons for rejecting ECIPs include duplication of effort, disregard for formatting rules, unfocused or too broad, being technically unsound, not providing proper motivation, or conflicting with the decentralization, backward compatibility, and state finality of the network.
-* **Withdrawn** - ECIP authors may decide on their own to change the status between Draft, Deferred, or Withdrawn. The ECIP editor may also change the status to Deferred when no progress is being made on the ECIP.
+* **Withdrawn** - ECIP authors may decide to change the status between Draft, Deferred, or Withdrawn. The ECIP editor may also change the status to Deferred if no progress is being made on the ECIP.
 
 # Accepted ECIPs
 
