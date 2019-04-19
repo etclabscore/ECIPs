@@ -21,7 +21,7 @@ When you believe your ECIP is mature and ready to progress past the draft phase,
  - **For all other ECIPs**, open a PR changing the state of your ECIP to 'Final'. An editor will review your draft and ask if anyone objects to its finalization. If the editor decides there is no rough consensus - for instance, because contributors point out significant issues with the ECIP - they may close the PR and request that you fix the issues in the draft before trying again.
 
 # ECIP Status Terms
-* **Draft** - An ECIP was submitted by its author and is undergoing rapid iteration and changes.
+* **Draft** - An ECIP that is undergoing rapid iteration and changes.
 * **Last Call** - An ECIP that is done with its initial iteration and ready for review by a wider audience.
 * **Accepted** - An ECIP that has been in Last Call for at least 2 weeks and any technical changes that were requested have been addressed by the author. If Core Devs decide to implement an ECIP into their clients, the ECIP will move to final.
 * **Final (non-Core)** - An ECIP that has been in Last Call for at least 2 weeks, any technical changes that were requested have been addressed by the author, and Core Devs decided to implement it into their clients. 
