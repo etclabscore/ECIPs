@@ -85,7 +85,7 @@ If `block.number >= ISTANBUL_FORK_NUM` then when constructing the block, set a 1
 
 This Root is defined by the combining all previous hashes into a [Merkle Mountain Range](https://github.com/juinc/tilap/issues/244) (Peter Todd) using it's block number as leaf index.
 
-Implimentaion of this tree is up to the clients but its fairly simple and requires only an additional ~500mb (on disk) to a full/archive node.
+Implementation of this tree is up to the clients but its fairly simple and requires only an additional ~500mb (on disk) to a full/archive node.
 
 The MMR structure uses a proccess of "bagging the peaks" in order to create a single _root_ hash. However, this may be sub-optimal for our use case. I would like to ammend this to instead define each root as _the hash of the concatonation of the mountain peaks_. This will make building and verifying proofs much simpler without significantly changing the size of the proofs.
 
