@@ -65,7 +65,7 @@ The problem is that it ends there. And we still have nothing, if the person (or 
 
 FlyClient is that something, and adding an `MMRroot` to each blockheader is the protocol change that will allow FlyClient to work.
 
-On a high level, it allows the verifier to sample a subset of blocks in a tree, rather than a full amount thought a linked list, improving the time-complexit from O(n) to O(log(n)). The sample subset can be made large enough such it is cryptographically infeasible to ever produce a false proof.
+On a high level, it allows the verifier to sample a subset of blocks in a tree, rather than a full amount thought a linked list, improving the time-complexity from O(n) to O(log(n)). The sample subset can be made large enough such it is cryptographically infeasible to ever produce a false proof.
 
 With this EIP, PoW can be proven in < 3 megabytes. This will hit a sweet spot, where for instance, mobile wallets, can request the latest cummulative work every time they are opened (no need to even "sync"). Users can finally verify data in a practical way (without a full-node). The proofs are even small enough for IoT devices.
 
