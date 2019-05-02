@@ -89,7 +89,7 @@ Implementation of this tree is up to the clients but its fairly simple and requi
 
 The MMR structure uses a proccess of "bagging the peaks" in order to create a single _root_ hash. However, this may be sub-optimal for our use case. I would like to ammend this to instead define each root as _the hash of the concatonation of the mountain peaks_. This will make building and verifying proofs much simpler without significantly changing the size of the proofs.
 
-The structure can be implimented as an array. Only a log(n) number of read/writes are done for any operation. A `put` operation needs to be done durring each block validation by the client. About 600 `get`s need to be performed when one of these proofs is requested (however the client can cash the latest proof). There is exactly 1 valid FlyProof for the current tip (latest mined block).
+The structure can be implimented as an array. Only a log(n) number of read/writes are done for any operation. A `put` operation needs to be done durring each block validation by the client. About 600 `get`s need to be performed when one of these proofs is requested (however the client can cache the latest proof). There is exactly 1 valid FlyProof for the current tip (latest mined block).
 
 The FlyCLient paper can be followed almost exactly. Find it [here](https://eprint.iacr.org/2019/226.pdf)for specs.
 
