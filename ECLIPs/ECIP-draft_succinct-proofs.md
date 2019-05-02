@@ -24,7 +24,7 @@ A block _chain_ could be interpreted as a linked-list using hashpointers from ea
 
 ## Motivation
 <!--The motivation is critical for EIPs that want to change the Ethereum protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the EIP solves. EIP submissions without sufficient motivation may be rejected outright.-->
-The recent FlyClient [paper](https://eprint.iacr.org/2019/226.pdf) and [presentation](https://www.youtube.com/watch?v=BPNs9EVxWrA) at Scaling Bitcoin Represented a major breakthrough the ability to succinctly, and non-interactivly prove the cummulative work of a blockchain. 
+The recent FlyClient [paper](https://eprint.iacr.org/2019/226.pdf) and [presentation](https://www.youtube.com/watch?v=BPNs9EVxWrA?t=8400) at Scaling Bitcoin Represented a major breakthrough the ability to succinctly, and non-interactivly prove the cumulative work of a blockchain.
 
 The current data structures in Ethereum (merkle-patricia-trees) were made with the sole purpose of allowing succinct verification of all the data. I have personally been working for some time on the missing tools to extract, send, and validate these proofs. This work is mostly done, but there is a problem: 
 
