@@ -93,7 +93,7 @@ The structure can be implimented as an array. Only a log(n) number of read/write
 
 The FlyCLient paper can be followed almost exactly. Find it [here](https://eprint.iacr.org/2019/226.pdf)for specs.
 
-Missing from the paper is a specific way to attain the samples from the blockhash (used as random seed). For this proccess, I propose we use [slice-sampling](https://en.wikipedia.org/wiki/Slice_sampling). This should be a very efficient algorythm as long as our probability density function is _inversable_. We may require a hash during each iteration (~600). This proces is only required for building and verifying proofs, it is not required for instance, of miners.
+Missing from the paper is a specific way to attain the samples from the blockhash (used as random seed). For this process, I propose we use [slice-sampling](https://en.wikipedia.org/wiki/Slice_sampling). This should be a very efficient algorithm as long as our probability density function is _invertible_. We may require a hash during each iteration (~600). This process is only required for building and verifying proofs, it is not required for instance, of miners.
 
 
 <!--T
