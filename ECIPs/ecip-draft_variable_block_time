@@ -1,11 +1,27 @@
-Variable block times
+### Title
 
-The idea is to have a new rule on valid blocks - They must use up-to the block gas limit (+/- 1% of the block gas limit) in order to be considered valid.
+    ECIP: <ECIP number>
+    Title: Variable block times
+    Author: Zachary Belford
+    Discussions-To: tbd
+    Status: Draft
+    Type: Standards Track
+    Created: 2019-09-25
 
-This requires that we have variable target block times. 
+### Abstract
+The idea is to have block always be full - meaning new blocks should include enough transactions such that they use the maximum amount of gas allowed by that block.
 
-How to chose the next block difficulty? 
-Difficulty remains static. We arbitrarily choose a block difficulty, and it's not longer used as a way to keep the block times consistent.
+### Motivation
+Many of the blocks on ETC don't use nearly as much gas as the gas limit allows. In fact, many blocks have 0 transactions in them. This contributes to blockchain bloat. 
 
-How to chose the next block time?
-Time no longer matters for calculating difficulty - there is no target block time anymore.
+### Specification
+Target block time is to be removed. Block time should now be considered variable and unpredictable. 
+
+Block difficulty is static and an arbitrary value is chosen to be 164574755330000
+
+Miners will continue to vote on block gas limit, however in order to allow the network to more quickly adapt to varying transaction volume distributions, we may want to consider changing the block gas limit delta max.
+
+### Rationale
+Fewer blocks overall will help keep the blockchain only as big as it needs to be.
+
+Further, the miners ability to vote on gas limits becomes more significant.
