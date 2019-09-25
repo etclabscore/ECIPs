@@ -1,0 +1,11 @@
+Variable block times
+
+The idea is to have a new rule on valid blocks - They must use up-to the block gas limit in order to be considered valid.
+
+This requires that we have variable target block times. 
+
+How to chose the next block difficulty? 
+Difficulty remains static. We arbitrarily choose a block difficulty, and it's not longer used as a way to keep the block times consistent.
+
+How to chose the next block time?
+Time no longer matters for calculating difficulty - there is no target block time anymore.
