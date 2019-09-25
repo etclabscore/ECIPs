@@ -1,6 +1,6 @@
 Variable block times
 
-The idea is to have a new rule on valid blocks - They must use up-to the block gas limit in order to be considered valid.
+The idea is to have a new rule on valid blocks - They must use up-to the block gas limit (+/- 1% of the block gas limit) in order to be considered valid.
 
 This requires that we have variable target block times. 
 
