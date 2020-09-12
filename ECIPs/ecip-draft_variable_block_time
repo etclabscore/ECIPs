@@ -1,0 +1,27 @@
+### Title
+
+    ECIP: <ECIP number>
+    Title: Variable block times
+    Author: Zachary Belford
+    Discussions-To: tbd
+    Status: Draft
+    Type: Standards Track
+    Created: 2019-09-25
+
+### Abstract
+The idea is to have block always be full - meaning new blocks should include enough transactions such that they use the maximum amount of gas allowed by that block.
+
+### Motivation
+Many of the blocks on ETC don't use nearly as much gas as the gas limit allows. In fact, many blocks have 0 transactions in them. This contributes to blockchain bloat. 
+
+### Specification
+Target block time is to be removed. Block time should now be considered variable and unpredictable. 
+
+Block difficulty is static and an arbitrary value is chosen to be 164574755330000
+
+Miners will continue to vote on block gas limit, however in order to allow the network to more quickly adapt to varying transaction volume distributions, we may want to consider changing the block gas limit delta max.
+
+### Rationale
+Fewer blocks overall will help keep the blockchain only as big as it needs to be.
+
+Further, the miners ability to vote on gas limits becomes more significant.
